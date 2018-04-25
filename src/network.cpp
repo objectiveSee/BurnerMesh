@@ -4,8 +4,8 @@
 #include "network.h"
 // #include "version.h"
 
-#define MESH_SSID       "whateverYouLike"
-#define MESH_PASSWORD   "somethingSneaky"
+#define MESH_SSID       "FakeFrenchWifi"
+#define MESH_PASSWORD   "ThisIsNotSecure"
 #define MESH_PORT       5555
 
 namespace LightSwarm {
@@ -90,7 +90,6 @@ uint32_t Network::GetTime()
 
 uint32_t Network::GetNodeID()
 {
-		INFO("Getting Node ID From Mesh: %08X\n",m_mesh.getNodeId());
     return m_mesh.getNodeId();
 }
 
