@@ -1,3 +1,8 @@
+/**
+ * Code for displaying data on a small OLED display (optiona to boards)
+ */
+
+
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 

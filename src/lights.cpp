@@ -34,6 +34,22 @@ void lights_loop() {
       allColor(0xFF0000);
     }
     break;
+    case LIGHT_MODE_ORANGE: {
+      allColor(0xFF5555);
+    }
+    break;
+    case LIGHT_MODE_GREEN: {
+      allColor(0x00FF00);
+    }
+    break;
+    case LIGHT_MODE_BLUE: {
+      allColor(0x0000FF);
+    }
+    break;
+    case LIGHT_MODE_RAINBOW: {
+      allColor(0x00FFFF);
+    }
+    break;
     default:{
       allColor(0x222222);
     }
