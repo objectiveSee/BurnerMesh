@@ -22,7 +22,7 @@ void setup() {
   network.Setup();
 
   displaySetup();
-  
+
   lights_setup();
 }
 
@@ -42,5 +42,5 @@ void loop() {
   //   last_display_update = millis();
   // }
   //
-  // lights_loop();
+  lights_loop();
 }
