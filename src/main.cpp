@@ -23,24 +23,25 @@ void setup() {
 
   displaySetup();
 
-  lights_setup();
+  lights_setup(&network);
 }
 
 void loop() {
 
   network.Update();
-  //
-  // static long last_display_update = 0;
-  // static long last_known_node_count = -1;
-  // if ( millis() - last_display_update > 1000 ) {
-  //   int node_count = mesh.getNodeList().size();
-  //   if ( node_count != last_known_node_count) {
-  //     Serial.print("Node count is now "); Serial.println(node_count);
-  //     last_known_node_count = node_count;
-  //   }
-  //   displayPrintStats(node_count);
-  //   last_display_update = millis();
-  // }
-  //
+  
+  static long last_display_update = 0;
+  static long last_known_node_count = -1;
+  if ( millis() - last_display_update > 250 ) {
+    int node_count = network.GetNodeCount();
+    if ( node_count != last_known_node_count) {
+      Serial.print("Node count is now "); Serial.println(node_count);
+      last_known_node_count = node_count;
+    }
+    displayPrintStats(node_count);
+    last_display_update = millis();
+  }
+  
+
   lights_loop();
 }

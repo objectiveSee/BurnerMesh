@@ -30,8 +30,10 @@ void report() {
 }
 
 void sendMessage() {
+  
   // Serial.println("TODO: Send Message");
-  LightMode new_color = (LightMode)random(5);
+  // LightMode new_color = (LightMode)random(5);
+  LightMode new_color = (LightMode)0; // TODO: this can be deleted. No point jsut to send a message
   setLightMode(new_color);
   String msg = "I choose "+new_color;
   Serial.print("[ADVENTURE] I am choosing "); Serial.println(new_color);
@@ -194,10 +196,13 @@ void Network::Update()
 //     }
 // }
 //
-// uint32_t Network::GetNodeCount()
-// {
-//     return m_nodes.size();
-// }
+
+// TODO: cache value. See other commented out code
+uint32_t Network::GetNodeCount()
+{
+    return mesh.getNodeList().size();
+}
+
 //
 // uint32_t Network::GetStability()
 // {

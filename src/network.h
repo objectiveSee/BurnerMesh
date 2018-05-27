@@ -1,7 +1,7 @@
 /**
  * Networking Code
  */
- 
+
 #pragma once
 #include <painlessMesh.h>
 
@@ -18,8 +18,8 @@ public:
 	// uint32_t GetTime();
 	// uint32_t GetNodeID();
 	// int32_t  GetNodeOffset();
-	// uint32_t GetNodeCount();
-	// uint32_t GetStability();
+	uint32_t GetNodeCount();
+  // uint32_t GetStability();
 	//
 	// using ReceivedCallbackT = std::function<void(uint32_t from, const String& msg)>;
 	// void Broadcast(const String& msg);
