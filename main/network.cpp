@@ -1,5 +1,8 @@
 #include <functional>
 
+#define MAD_NETWORK_LOGGING 0
+
+#include "build.h"
 #include "network.h"
 #include "Settings.h"
 
@@ -8,8 +11,6 @@
 #include <nRF24L01.h>
 #include <MirfHardwareSpiDriver.h>
 
-// Payload size used in nRF24L01 communication
-#define PAYLOAD_SIZE 4
 
 byte stringChecksum(byte *s)
 {
@@ -51,13 +52,7 @@ void Network::Setup()
 
      NB: payload on client and server must be the same.
   */
-  Mirf.payload = sizeof(unsigned long);
-
-  if ( sizeof(unsigned long) != PAYLOAD_SIZE ) {  // ok to delete after a while
-    Serial.println("BAD PAYLOAD SIZE!");
-    delay(1000);
-    while(1) {}
-  }
+  Mirf.payload = PAYLOAD_SIZE;
 
   /*
      Write channel and payload config then power up reciver.
@@ -80,7 +75,7 @@ void Network::Update()
   // Heartbeat message
   static unsigned long next_send = 10000;
   if ( millis() > next_send ) {
-    next_send = millis() + random(10000,60000); // 10-60 seconds
+    next_send = millis() + random(1000,6000);
     SendMessage(0x0A);
   }
 
@@ -99,11 +94,8 @@ void Network::Update()
 bool Network::MessageReceived() {
   return _message_received;
 }
-byte Network::GetMessage() {
+byte * Network::GetMessage() {
   return _message;
-}
-byte Network::GetMessageSender() {
-  return _message_from;
 }
 
 void Network::HandleMessage(byte* message) {
@@ -123,8 +115,12 @@ void Network::HandleMessage(byte* message) {
   } else {
     // save the message and set flag for 1 loop iteration
     _message_received = true;
-    _message = message[2];
-    _message_from = message[1];
+
+    // copy into the class' message buffer
+    for (byte i=0; i<MESSAGE_SIZE; i++) {
+//      Serial.print(i); Serial.print(" = "); Serial.println(message[i+1], HEX);  
+      _message[i] = message[i+1];
+    }
   }
 }
 
@@ -135,7 +131,7 @@ void Network::SendMessage(byte message)
 
   uint8_t n = getNodeId();
 
-  byte payload[PAYLOAD_SIZE] = {0xDA, n, message, 0x00};
+  byte payload[PAYLOAD_SIZE] = {0xDA, n, message, 0x00, 0x00, 0x00};
 
   byte checksum = stringChecksum(payload);
   payload[PAYLOAD_SIZE - 1] = checksum;

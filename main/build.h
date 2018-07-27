@@ -21,7 +21,6 @@
 #define MAD_BUTTON_LOGGING                0
 //#define MAD_RELAY_LOGGING                 1
 #define MAD_SETTINGS_LOGGING              1
-#define MAD_NETWORK_LOGGING 0
 
 
 

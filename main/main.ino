@@ -89,8 +89,13 @@ void loop() {
     network.Update();
 
     if ( network.MessageReceived() ) {
-        Serial.print("Message from device # "); Serial.print(network.GetMessageSender(), HEX);
-        Serial.print(": "); Serial.println(network.GetMessage(), HEX);
+        Serial.print("Incoming Message: ");
+        byte *msg = network.GetMessage();
+//        byte sender = msg[0];
+        for ( byte i=0; i<MESSAGE_SIZE; i++) {
+          Serial.print(msg[i], HEX); Serial.print(" ");
+        } 
+        Serial.println(" END");
     }
   }
 

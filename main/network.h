@@ -6,6 +6,12 @@
 
 #include <Arduino.h>
 
+// Payload size used in nRF24L01 communication
+#define PAYLOAD_SIZE 6
+
+// Paylaod - 2 (checksum, header removed)
+#define MESSAGE_SIZE 4
+
 class Network final
 {
 public:
@@ -17,8 +23,7 @@ public:
   void SendMessage(byte message);
   void HandleMessage(byte* message);
   bool MessageReceived();
-  byte GetMessage();
-  byte GetMessageSender();
+  byte * GetMessage();
 
 	// uint32_t GetTime();
 	//  uint32_t GetNodeID();
@@ -39,8 +44,7 @@ private:
 	// void DelayReceivedCallback(uint32_t from, int32_t delay);
 
   bool _message_received;
-  byte _message;
-  byte _message_from;
+  byte _message[MESSAGE_SIZE];
 };
 
 // const char * nameForNetworkId(uint32_t);
