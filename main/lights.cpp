@@ -8,7 +8,7 @@
 CRGB leds[NUM_LEDS];
 #define PIN 24
 
-#define DEFAULT_BRIGHTNESS 255
+#define DEFAULT_BRIGHTNESS 20
 
 // Debug flag
 #define DONT_CHANGE_LIGHT_MODE_EVER
@@ -25,7 +25,7 @@ void Rainbow(byte, int, int);
  * Light modes as enum.
  * NOTE: LIGHT_MODE_OFF is after the LIGHT_MODE_COUNT so it isn't cycled through.
  */
-#define DEFAULT_LIGHT_MODE LIGHT_MODE_RAINBOW
+#define DEFAULT_LIGHT_MODE LIGHT_MODE_FIRE
 static LightMode _lightMode = DEFAULT_LIGHT_MODE;
 
 void lights_setup(Network * theirNetwork) {

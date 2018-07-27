@@ -23,6 +23,7 @@
 #include "Settings.h"
 #include "network.h"
 #include "lights.h"
+#include "Button.h"
 
 Network         network;
 
@@ -41,6 +42,7 @@ Network         network;
    Static Members
 */
 static bool wireless_input_enabled = true;
+static Button button0(15);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -87,6 +89,11 @@ void loop() {
     network.Update();
   }
 
+  button0.loop();
+  if(button0.stateChanged() ) {
+    Serial.println("Button 0 changed state!");
+  }
+
   lights_loop();
 
   // prevent us from spending all the time inside loop() so interrupt based things can happen
@@ -125,54 +132,6 @@ void cmd_handle_from_wireless(byte * commandRcvd ) {
       break;
   }
 }
-
-/**
-   Configure Wireless
-*/
-void wireless_setup() {
-
-//   LOGN(F("Begin Wireless Setup"));
-//   unsigned long function_start = millis();
-
-
-//   // Set pins
-//   Mirf.cePin = 9;
-//   Mirf.csnPin = 10;
-
-//   LOGN(F("Configuring Wirless..."));
-//   Mirf.spi = &MirfHardwareSpi;
-//   Mirf.init();
-
-//   // Configure reciving address.
-//   Mirf.setRADDR((byte *)"bonjr");
-
-//   /*
-//      Set the payload length to sizeof(unsigned long) the
-//      return type of millis().
-
-//      NB: payload on client and server must be the same.
-//   */
-//   Mirf.payload = sizeof(unsigned long);
-
-//   if ( sizeof(unsigned long) != PAYLOAD_SIZE ) {  // ok to delete after a while
-//     Serial.println("BAD PAYLOAD SIZE!");
-//     delay(1000);
-//     while(1) {}
-//   }
-
-//   /*
-//      Write channel and payload config then power up reciver.
-//      To change channel:
-//      Mirf.channel = 10;
-//      NB: Make sure channel is legal in your area.
-//   */
-
-//   //  Mirf.channel = 90;
-//   Mirf.config();
-// //  LOG(F("Wireless config finished, took ")); LOG(millis() - function_start);
-// //  LOGN(F("ms"));
-}
-
 
 /**
    Blinks the on-board LED when setup() is called. Give some time to reset Teensy if needed.
