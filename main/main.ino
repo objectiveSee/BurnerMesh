@@ -87,6 +87,11 @@ void loop() {
 
   if ( wireless_input_enabled ) {
     network.Update();
+
+    if ( network.MessageReceived() ) {
+        Serial.print("Message from device # "); Serial.print(network.GetMessageSender(), HEX);
+        Serial.print(": "); Serial.println(network.GetMessage(), HEX);
+    }
   }
 
   button0.loop();

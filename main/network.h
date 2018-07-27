@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <Arduino.h>
+
 class Network final
 {
 public:
@@ -12,6 +14,12 @@ public:
 
 	void Setup();
 	void Update();
+  void SendMessage(byte message);
+  void HandleMessage(byte* message);
+  bool MessageReceived();
+  byte GetMessage();
+  byte GetMessageSender();
+
 	// uint32_t GetTime();
 	//  uint32_t GetNodeID();
 	// int32_t  GetNodeOffset();
@@ -29,12 +37,10 @@ private:
 	// void ChangedConnectionCallback();
 	// void NodeTimeAdjustedCallback(int32_t offset);
 	// void DelayReceivedCallback(uint32_t from, int32_t delay);
-	//
-	// painlessMesh          m_mesh;
-	// bool                  m_calcDelay = false;
-	// std::list<uint32_t>	  m_nodes;
-	// uint32_t              m_sendMessageTime = 0;
-	// uint32_t              m_helloCounter = 0;
+
+  bool _message_received;
+  byte _message;
+  byte _message_from;
 };
 
 // const char * nameForNetworkId(uint32_t);

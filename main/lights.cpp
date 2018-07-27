@@ -11,7 +11,7 @@ CRGB leds[NUM_LEDS];
 #define DEFAULT_BRIGHTNESS 20
 
 // Debug flag
-#define DONT_CHANGE_LIGHT_MODE_EVER
+//#define DONT_CHANGE_LIGHT_MODE_EVER
 
 CRGB wheel(int WheelPos, int dim);
 Network *myNetwork;

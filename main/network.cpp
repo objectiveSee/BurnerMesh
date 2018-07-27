@@ -11,39 +11,13 @@
 // Payload size used in nRF24L01 communication
 #define PAYLOAD_SIZE 4
 
-
-// User stub
-void sendMessage() ; // Prototype so PlatformIO doesn't complain
-void report();
-
-//Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
-//Task taskReport( TASK_SECOND * 120 , TASK_FOREVER, &report );
-
-
-void report() {
-  // std::list<uint32_t> m_nodes = mesh.getNodeList();
-  // Serial.printf("[NET] Connection list (num=%d):", m_nodes.size());
-  // for (auto node : m_nodes) {
-  //     Serial.printf(" 0x%x", node);
-  // }
-  // Serial.print("\n");
-  Serial.println("TODO report()");
-}
-
-void sendMessage() {
-  
-  // Serial.println("TODO: Send Message");
-  // LightMode new_color = (LightMode)random(5);
-  // LightMode new_color = (LightMode)0; // TODO: this can be deleted. No point jsut to send a message
-  // setLightMode(new_color);
-  // String msg = "Purple Light!!!!";
-  // Serial.print("[NET] Sending: "); Serial.println(msg);
-  // mesh.sendBroadcast( msg );
-  
-
-
-  // Reset the interval for sending out info
-//  taskSendMessage.setInterval( random( TASK_SECOND * 10, TASK_SECOND * 20 ));
+byte stringChecksum(byte *s)
+{
+  byte c = 0;
+  for ( byte i = 0; i < PAYLOAD_SIZE-1; i++ ) {
+    c += s[i]; 
+  }
+  return c;
 }
 
 Network::Network()
@@ -56,14 +30,15 @@ Network::~Network()
 
 void Network::Setup()
 {
+#if MAD_NETWORK_LOGGING
   Serial.println(F("Begin Wireless Setup"));
+#endif
   unsigned long function_start = millis();
 
   // Set pins
   Mirf.cePin = 9;
   Mirf.csnPin = 10;
 
-  Serial.println(F("Configuring Wirless..."));
   Mirf.spi = &MirfHardwareSpi;
   Mirf.init();
 
@@ -93,75 +68,92 @@ void Network::Setup()
 
 //  Mirf.channel = 53;
   Mirf.config();
+#if MAD_NETWORK_LOGGING
   Serial.print(F("Wireless config finished, took ")); Serial.print(millis() - function_start);
-  Serial.println(F("ms"));
-    
+  Serial.println(F("ms"));    
+#endif
 }
 
 void Network::Update()
 {
-  
-  static unsigned long last_send = 0;
-  if ( millis() - last_send > 5000 ) {
 
-    Serial.println("Sending");
-    last_send = millis();
-
-    Mirf.setTADDR((byte *)"bonjr");
-
-    uint8_t n = getNodeId();
-
-    byte payload[PAYLOAD_SIZE] = {0xDE,0xAD,n,(byte)random(255)};
-    
-    Mirf.send((byte *)payload);    
-    while(Mirf.isSending()){
-    }
-    Serial.println("Finished sending");
-    delay(10);
-    
+  // Heartbeat message
+  static unsigned long next_send = 10000;
+  if ( millis() > next_send ) {
+    next_send = millis() + random(10000,60000); // 10-60 seconds
+    SendMessage(0x0A);
   }
 
+  _message_received = false; // will be set to true inside HandleMessage if message was received
+
   if( ! Mirf.isSending() && Mirf.dataReady() ) {
+  
     delay(10);
     byte payload[PAYLOAD_SIZE];
     Mirf.getData((byte *) &payload);
   
-    Serial.print("Received: ");
-    for ( byte i=0; i<PAYLOAD_SIZE; i++) {
-      Serial.print(payload[i], HEX); Serial.print(" ");
-    }
-    Serial.println("");
-    
+    HandleMessage(payload);    
   }
-
-  delay(10);
 }
 
-// uint32_t Network::GetNodeCount()
-// {
-//     return mesh.getNodeList().size();
-// }
+bool Network::MessageReceived() {
+  return _message_received;
+}
+byte Network::GetMessage() {
+  return _message;
+}
+byte Network::GetMessageSender() {
+  return _message_from;
+}
 
-// uint32_t Network::GetNodeID()
-// {
-//    return mesh.getNodeId();
-// }
+void Network::HandleMessage(byte* message) {
 
-// const char * nameForNetworkId(uint32_t node_id) {
-//   switch (node_id) {
-//     case 572362449:
-//       return "W1";
-//       break;
-//     case 571995149:
-//       return "W2";
-//       break;
-//     case 571513175:
-//       return "W3";
-//       break;
-//     default:
-//       Serial.print("Unrecognized Node Id "); Serial.println(node_id);
-//       return "W?";
-//       break;
-//   }
-// }
+#if MAD_NETWORK_LOGGING
+  Serial.print("Received: ");
+  for ( byte i=0; i<PAYLOAD_SIZE; i++) {
+    Serial.print(message[i], HEX); Serial.print(" ");
+  }
+  Serial.println("");
+#endif
+ 
+  byte checksum = stringChecksum(message);
+  if ( message[0] != 0xDA || message[PAYLOAD_SIZE-1] != checksum ) {
+    Serial.print("Invalid header or checksum. Expected checksum is ");
+    Serial.println(checksum, HEX);
+  } else {
+    // save the message and set flag for 1 loop iteration
+    _message_received = true;
+    _message = message[2];
+    _message_from = message[1];
+  }
+}
+
+void Network::SendMessage(byte message)
+{
+  
+  Mirf.setTADDR((byte *)"bonjr");
+
+  uint8_t n = getNodeId();
+
+  byte payload[PAYLOAD_SIZE] = {0xDA, n, message, 0x00};
+
+  byte checksum = stringChecksum(payload);
+  payload[PAYLOAD_SIZE - 1] = checksum;
+
+#if MAD_NETWORK_LOGGING
+  Serial.print("Sending: ");
+  for ( byte i=0; i<PAYLOAD_SIZE; i++) {
+    Serial.print(payload[i], HEX); Serial.print(" ");
+  }
+  Serial.println("");
+#endif
+  
+  Mirf.send((byte *)payload);
+  while(Mirf.isSending()){  // TODO: add timeout?
+  }
+#if MAD_NETWORK_LOGGING
+  Serial.println("Finished sending");
+#endif
+  delay(10);
+}
 
