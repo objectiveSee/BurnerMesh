@@ -2,12 +2,14 @@
 #include "network.h"
 #include <Adafruit_NeoPixel.h>
 
-#define LEDS_PER_STRIP 90
+#define LEDS_PER_STRIP 16
 #define NEOPIXEL_PIN D8
 #define DEFAULT_BRIGHTNESS 20
 
 // Debug flag
 #define DONT_CHANGE_LIGHT_MODE_EVER
+// #define SKIP_LIGHT_LOOP
+
 
 
  void showNodeCount();
@@ -25,23 +27,8 @@ Network * myNetwork;
 
 void allColor(unsigned int c) {
 
-  static int last_count = -1;
-
-  int num_friends = myNetwork->GetNodeCount();
-  if ( last_count != num_friends ) {
-    last_count = num_friends;
-    Serial.print("Node count is "); Serial.println(num_friends);
-  }
-
   for (int i=0; i < LEDS_PER_STRIP; i++) {
-
-    if (  i < num_friends * 10 ) {
-      strip.setPixelColor(i, 0x00000000);
-
-    } else {
-      strip.setPixelColor(i, c);
-
-    }
+    strip.setPixelColor(i, c);
   }
   strip.show();
 }
@@ -57,21 +44,35 @@ void lights_setup(Network * theirNetwork) {
 
 // TODO: fancier lights!
 
+#define LIGHT_UPDATE_MIN_INTERVAL_IN_MS 16
+
 void lights_loop() {
+  
+#ifdef SKIP_LIGHT_LOOP
+  return;
+#endif
   
   static uint32_t last_loop = 0;
   static int countSkipped = 0;
-  uint32_t time_since = millis() - last_loop;
-  if ( time_since < 16 ) {
-    // skip light update for performance reasons
+
+  uint32_t now = millis();
+  uint32_t time_since = now - last_loop;
+
+  
+  // skip light update for performance reasons
+  if ( time_since < LIGHT_UPDATE_MIN_INTERVAL_IN_MS ) {
     countSkipped++;
     return;
   }
   
+  // Debug how many times function was called before lights updated
+#if 0
   Serial.print("[LIGHT] Skipped "); Serial.print(countSkipped);
-  Serial.print("/  \tTime:"); Serial.println(time_since);
+  Serial.print("  \tTime:"); Serial.println(time_since);
+#endif
   countSkipped = 0;  
-  last_loop = millis();
+
+  last_loop = now;
   
   switch (_lightMode) {
     case LIGHT_MODE_RED: {
@@ -103,6 +104,11 @@ void lights_loop() {
     }
     break;
   }
+  
+#if 0
+  uint32_t loop_time = millis() - now;
+  Serial.print("[LIGHT] Light loop took "); Serial.print(loop_time); Serial.println(" ms");
+#endif
 
   // int brightness = (millis()/10)%100;
   // strip.setBrightness(brightness);
@@ -122,20 +128,21 @@ LightMode lightMode() {
  * Node Count Animation
  */
  extern Network network;
+
+ #define LEDS_PER_NODE 3
  
  void showNodeCount() {
-   Serial.println("Showing Node Count");
    
    int node_count = (int)network.GetNodeCount();
-   Serial.print("Showing Node Count"); Serial.println(node_count);
-   int offset = 10;
+//   Serial.print("[LIGHTS] Showing Node Count"); Serial.println(node_count);
+   int offset = LEDS_PER_NODE;
    
    for (int i=0; i < LEDS_PER_STRIP; i++) {
 
-     if (  i < (node_count * 10)+offset  ) {
+     if (  i < (node_count * LEDS_PER_NODE)+offset  ) {
        strip.setPixelColor(i, 0xFF0000);
      } else {
-       strip.setPixelColor(i, 0x000000);
+       strip.setPixelColor(i, 0x00FF22);
      }
    }
    strip.show();

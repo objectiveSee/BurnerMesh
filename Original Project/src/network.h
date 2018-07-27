@@ -16,7 +16,7 @@ public:
 	void Setup();
 	void Update();
 	// uint32_t GetTime();
-	// uint32_t GetNodeID();
+	 uint32_t GetNodeID();
 	// int32_t  GetNodeOffset();
 	uint32_t GetNodeCount();
   // uint32_t GetStability();
@@ -39,4 +39,7 @@ private:
 	// uint32_t              m_sendMessageTime = 0;
 	// uint32_t              m_helloCounter = 0;
 };
+
+const char * nameForNetworkId(uint32_t);
+
 // } // namespace
