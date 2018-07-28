@@ -61,7 +61,11 @@ void Network::Setup()
      NB: Make sure channel is legal in your area.
   */
 
-//  Mirf.channel = 53;
+
+  // According to documentation, the `RF_PWR` mask of register 0x06 is by default `11` which means highest power setting
+
+  // set to a non-default channel (under 80 for the USA) to avoid the busier channel
+  Mirf.channel = 53;
   Mirf.config();
 #if MAD_NETWORK_LOGGING
   Serial.print(F("Wireless config finished, took ")); Serial.print(millis() - function_start);

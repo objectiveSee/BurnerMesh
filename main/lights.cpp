@@ -9,7 +9,7 @@
 CRGB leds[NUM_LEDS];
 #define PIN 24
 
-#define DEFAULT_BRIGHTNESS 20
+#define DEFAULT_BRIGHTNESS 255
 
 // Debug flag
 //#define DONT_CHANGE_LIGHT_MODE_EVER
@@ -108,7 +108,7 @@ void lights_loop() {
     }
     break;
     case LIGHT_MODE_RAINBOW: {
-      Rainbow(3,30,100);
+      Rainbow(10,30,100);
     }
     break;
     default:{
@@ -247,17 +247,17 @@ void TwinkleRandom() {
 /**
  * Rainbow
  */
-void Rainbow(byte nthLedOn, int rainbowSpeed, int pixelSpeed) {
+void Rainbow(byte nthLedOff, int rainbowSpeed, int pixelSpeed) {
   // void  fill_rainbow (struct CRGB *pFirstLED, int numToFill, uint8_t initialhue, uint8_t deltahue=5)
 //  fill_solid( leds, NUM_LEDS, CRGB(50,0,200)); 
 
   byte pos = (millis()/rainbowSpeed);
-  byte onIndex = (millis()/pixelSpeed)%nthLedOn;
+  byte offPos = (millis()/pixelSpeed)%nthLedOff;
 
   fill_rainbow( leds, NUM_LEDS, pos, 1);
 
   for (int i = 0; i < NUM_LEDS; i++ ) {
-    if ( i%nthLedOn != onIndex ) {
+    if ( i%nthLedOff == offPos ) {
       leds[i] = CRGB::Black;
     }
   }
