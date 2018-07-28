@@ -14,7 +14,7 @@ Button::Button( int pin_num )
   changed_this_loop = false;
 
   // enable pull-up resistor to prevent floating input when button is not being pressed.
-  pinMode(my_pin, INPUT_PULLDOWN);
+  pinMode(my_pin, INPUT_PULLUP);
 }
 
 bool Button::stateChanged() {

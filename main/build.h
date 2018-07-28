@@ -24,3 +24,14 @@
 
 
 
+// MUST BE BELOW build.h
+#ifdef MAD_MAIN_LOGGING
+#define LOGN(x)  Serial.println (x)
+#define LOG(x)  Serial.print (x)
+#else
+#pragma message "Logging is disabled"
+#define LOGN(x)
+#define LOG(x)
+#endif
+
+

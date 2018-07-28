@@ -27,22 +27,13 @@
 
 Network         network;
 
-// MUST BE BELOW build.h
-#ifdef MAD_MAIN_LOGGING
-#define LOGN(x)  Serial.println (x)
-#define LOG(x)  Serial.print (x)
-#else
-#pragma message "Logging is disabled"
-#define LOGN(x)
-#define LOG(x)
-#endif
-
-
 /**
    Static Members
 */
 static bool wireless_input_enabled = true;
 static Button button0(15);
+static Button button1(16);
+void buttonWasPressed(byte button_id);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -95,52 +86,29 @@ void loop() {
         for ( byte i=0; i<MESSAGE_SIZE; i++) {
           Serial.print(msg[i], HEX); Serial.print(" ");
         } 
-        Serial.println(" END");
+        Serial.println("END");
     }
   }
 
   button0.loop();
   if(button0.stateChanged() ) {
     Serial.println("Button 0 changed state!");
+    if ( button0.isOn() ) {
+      buttonWasPressed(0);
+    }
+  }
+  button1.loop();
+  if(button1.stateChanged() ) {
+    Serial.println("Button 1 changed state!");
+    if ( button1.isOn() ) {
+      buttonWasPressed(1);
+    }
   }
 
   lights_loop();
 
   // prevent us from spending all the time inside loop() so interrupt based things can happen
   delay(10);
-}
-
-
-/*
-   Passes a command from Wireless "API" into the command handlers
-    Byte 0: Header (0x55)
-    Byte 1: Header 2 (0xAA) or Remote ID
-    Byte 2: Address/Command byte
-    Byte 3: Tail (0xFF)
-*/
-void cmd_handle_from_wireless(byte * commandRcvd ) {
-
-  // we respect the mode here if in a mode where the Lighting contorller sends poofs only.
-  // This could be changed. Remote beats all ;)
-
-  if ( commandRcvd[0] != 0x55 ) {
-    LOGN("Wireless error: Header is not 0x55");
-    return;
-  } else if ( commandRcvd[3] != 0xFF ) {
-    LOGN("Wireless error: Tail is not 0xFF");
-    return;
-  }
-#if MAD_MAIN_LOGGING
-  Serial.print("Wireless received 0x"); Serial.print(commandRcvd[2], HEX);
-  Serial.print(" from remote ID# 0x"); Serial.println(commandRcvd[1], HEX);
-#endif
-
-  switch (commandRcvd[2]) {
-
-    default:
-      LOGN("Unsupported command from wireless.");
-      break;
-  }
 }
 
 /**
@@ -157,4 +125,16 @@ void blinkLEDOnBootup() {
     delay(BLINKY_TIME);
   }
 }
+
+/**
+ * Application Logic
+ */
+void buttonWasPressed(byte button_id) {
+  if ( button_id == 0 ) {
+    advanceLightModeFun();
+  } else {
+    advanceLightModeNotice();
+  }
+}
+
 

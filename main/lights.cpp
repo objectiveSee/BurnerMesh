@@ -1,3 +1,4 @@
+#include "build.h"
 #include "lights.h"
 #include "network.h"
 
@@ -25,8 +26,42 @@ void Rainbow(byte, int, int);
  * Light modes as enum.
  * NOTE: LIGHT_MODE_OFF is after the LIGHT_MODE_COUNT so it isn't cycled through.
  */
-#define DEFAULT_LIGHT_MODE LIGHT_MODE_FIRE
-static LightMode _lightMode = DEFAULT_LIGHT_MODE;
+LightMode _lightMode = LIGHT_MODE_RED;
+
+
+void advanceLightModeFun() {
+  
+  if ( (int)_lightMode > COUNT_NOTICE_MODES ) {
+    
+    // switch from fun mode to fun mode (advance by 1)
+    int nextMode = (int)_lightMode - COUNT_NOTICE_MODES;      // find offset of current mode into just the "fun" ones
+    
+    nextMode = (nextMode+1) % COUNT_FUN_MODES;                    // advance by 1 mode
+    nextMode = nextMode + COUNT_NOTICE_MODES;                 // add back the offset from the non-fun ones
+    setLightMode((LightMode)nextMode);
+
+    } else {
+
+    // set to 1st fun mode
+    int nextMode = COUNT_NOTICE_MODES + 1;
+    setLightMode((LightMode)nextMode);
+  }
+}
+
+// TODO: when switching from fun to notice, or vice versus, it's off by 1
+
+void advanceLightModeNotice() {
+
+  int nowMode = (int)_lightMode;
+  
+  if ( nowMode <= COUNT_NOTICE_MODES) {
+    nowMode = (nowMode + 1) % COUNT_NOTICE_MODES;
+  } else {
+    // set to fire notice mode
+    nowMode = LIGHT_MODE_RED;
+  }
+  setLightMode((LightMode)nowMode);
+}
 
 void lights_setup(Network * theirNetwork) {
   
@@ -53,8 +88,8 @@ void lights_loop() {
         allColor(CRGB(255,0,0));
     }
     break;
-    case LIGHT_MODE_ORANGE: {
-      allColor(0xFF5555);
+    case LIGHT_MODE_PURPLE: {
+      allColor(0x8A2BE2);
     }
     break;
     case LIGHT_MODE_GREEN: {
@@ -93,6 +128,10 @@ void lights_loop() {
 }
 
 void setLightMode(LightMode mode) {
+
+  LOG("Light mode changing from "); LOG((int)_lightMode);
+  LOG(" to "); LOGN((int)mode);
+  
 #ifndef DONT_CHANGE_LIGHT_MODE_EVER
   _lightMode = mode;
 #endif
