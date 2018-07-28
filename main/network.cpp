@@ -76,7 +76,8 @@ void Network::Update()
   static unsigned long next_send = 10000;
   if ( millis() > next_send ) {
     next_send = millis() + random(1000,6000);
-    SendMessage(0x0A);
+    byte heartbeat[3] = {COMMAND_HEARTBEAT,0,0};
+    SendMessage(heartbeat);
   }
 
   _message_received = false; // will be set to true inside HandleMessage if message was received
@@ -124,20 +125,38 @@ void Network::HandleMessage(byte* message) {
   }
 }
 
-void Network::SendMessage(byte message)
+void Network::SendModeChange(byte modeAsByte) {
+  byte modeChange[3] = {COMMAND_MODE_CHANGE, modeAsByte, 0};
+  SendMessage(modeChange);
+}
+
+/**
+ * Formats and sends a payload via wireless.
+ * 
+ * @param message - pointer to a MESSAGE_SIZE-1 byte array
+ * 
+ * The subraction is needed as 1 byte of message is the nodeId.
+ */
+void Network::SendMessage(byte* message)
 {
   
   Mirf.setTADDR((byte *)"bonjr");
 
   uint8_t n = getNodeId();
 
-  byte payload[PAYLOAD_SIZE] = {0xDA, n, message, 0x00, 0x00, 0x00};
-
+  byte payload[PAYLOAD_SIZE];
+  payload[0] = 0xDA;  // header
+  payload[1] = n;
+  
+  // copy message into the send buffer. Subtract one because one byte of message is the node Id
+  // which gets set by this function.
+  memcpy(&payload[2], message, MESSAGE_SIZE - 1); 
+  
   byte checksum = stringChecksum(payload);
   payload[PAYLOAD_SIZE - 1] = checksum;
 
 #if MAD_NETWORK_LOGGING
-  Serial.print("Sending: ");
+  Serial.print("Sending paylod: ");
   for ( byte i=0; i<PAYLOAD_SIZE; i++) {
     Serial.print(payload[i], HEX); Serial.print(" ");
   }

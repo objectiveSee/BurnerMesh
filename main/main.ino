@@ -33,6 +33,11 @@ Network         network;
 static bool wireless_input_enabled = true;
 static Button button0(15);
 static Button button1(16);
+
+/*
+ * Functions
+ */
+void process_message(byte * message);
 void buttonWasPressed(byte button_id);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,13 +85,8 @@ void loop() {
     network.Update();
 
     if ( network.MessageReceived() ) {
-        Serial.print("Incoming Message: ");
         byte *msg = network.GetMessage();
-//        byte sender = msg[0];
-        for ( byte i=0; i<MESSAGE_SIZE; i++) {
-          Serial.print(msg[i], HEX); Serial.print(" ");
-        } 
-        Serial.println("END");
+        process_message(msg);        
     }
   }
 
@@ -109,6 +109,32 @@ void loop() {
 
   // prevent us from spending all the time inside loop() so interrupt based things can happen
   delay(10);
+}
+
+void process_message(byte * msg) {
+
+  Serial.print("Incoming Message: ");
+  for ( byte i=0; i<MESSAGE_SIZE; i++) {
+    Serial.print(msg[i], HEX); Serial.print(" ");
+  } 
+  Serial.println("END");
+
+//  byte senderId = msg[0];
+  byte commandId = msg[1];
+
+  switch(commandId) {
+    case COMMAND_MODE_CHANGE:
+    {
+      byte newMode = msg[2];
+      setLightMode((LightMode)newMode);
+    }
+    break;
+    default:{
+      
+    }
+    break;
+  }
+
 }
 
 /**
@@ -135,6 +161,8 @@ void buttonWasPressed(byte button_id) {
   } else {
     advanceLightModeNotice();
   }
+
+  network.SendModeChange((byte)lightMode());
 }
 
 

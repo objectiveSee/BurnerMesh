@@ -12,6 +12,13 @@
 // Paylaod - 2 (checksum, header removed)
 #define MESSAGE_SIZE 4
 
+/*
+ * Commands for wireless comm
+ */
+#define COMMAND_MODE_CHANGE 0x0D
+#define COMMAND_HEARTBEAT 0x0A
+
+
 class Network final
 {
 public:
@@ -20,7 +27,8 @@ public:
 
 	void Setup();
 	void Update();
-  void SendMessage(byte message);
+  void SendMessage(byte* message);
+  void SendModeChange(byte modeAsByte);
   void HandleMessage(byte* message);
   bool MessageReceived();
   byte * GetMessage();
