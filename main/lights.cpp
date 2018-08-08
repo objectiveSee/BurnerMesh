@@ -54,7 +54,7 @@ void advanceLightModeNotice() {
 
   int nowMode = (int)_lightMode;
   
-  if ( nowMode <= COUNT_NOTICE_MODES) {
+  if ( nowMode < COUNT_NOTICE_MODES) {
     nowMode = (nowMode + 1) % COUNT_NOTICE_MODES;
   } else {
     // set to fire notice mode
