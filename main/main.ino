@@ -38,6 +38,7 @@ static Button button1(16);
 // indicates a time (in ms) when we should broadcast a mode change. 
 static unsigned long last_mode_send_change = 0;
 #define kLIGHT_MODE_SEND_DELAY 2000
+#define kLIGHT_MODE_REBROADCAST_DELAY 500
 
 
 /*
@@ -96,10 +97,32 @@ void loop() {
         process_message(msg);        
     }
 
+    unsigned long t = millis();
+
     // Send mode change (button presses) only after a delay
-    if ( millis() > last_mode_send_change && last_mode_send_change != 0 ) {
+    if ( t > last_mode_send_change && last_mode_send_change != 0 ) {
+
+      // flag to keep track of whether we have done a rebroadcast yet
+      static bool isRebroadcasting = false;
+
+      if ( isRebroadcasting ) {
+        LOGN("Rebroadcasting");
+      }
+  
+      // send the change
       network.SendModeChange((byte)lightMode());
-      last_mode_send_change = 0;
+
+      // check whether we are rebroadcasting already
+      if ( isRebroadcasting == false ) { 
+        isRebroadcasting = true;
+        // schedule a re-broadcast
+        last_mode_send_change = t + kLIGHT_MODE_REBROADCAST_DELAY;
+      } else {
+        // already re-broadcasted, no need to do anything else
+        isRebroadcasting = false;
+        last_mode_send_change = 0;
+      }
+      
     }
 
   }

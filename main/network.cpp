@@ -1,6 +1,6 @@
 #include <functional>
 
-#define MAD_NETWORK_LOGGING 0
+#define MAD_NETWORK_LOGGING 1
 
 #include "build.h"
 #include "network.h"
@@ -73,16 +73,46 @@ void Network::Setup()
 #endif
 }
 
+//bool Network::WirelessActive() {
+
+//  // TODO: is this right?
+//  byte s = Mirf.getStatus();
+////  LOG("Status is ");
+////  Serial.println(s, HEX);
+//  return (s != 0xFF);
+//  return true;
+//}
+
+
+//#define FAST_NETWORK_HEARTBEAT
+
+#ifdef FAST_NETWORK_HEARTBEAT
+#pragma message "Using Fast Heartbeat"
+#define NETWORK_HEARTBEAT_MIN_INTERVAL 1000
+#define NETWORK_HEARTBEAT_MAX_INTERVAL 6000
+#else
+#define NETWORK_HEARTBEAT_MIN_INTERVAL  60000
+#define NETWORK_HEARTBEAT_MAX_INTERVAL 120000
+#endif
+#define NETWORK_HEARTBEAT_DELAY_AFTER_BOOT 10000
+
 void Network::Update()
 {
 
+//  if ( ! WirelessActive() ) {
+//    return;
+//  }
+
   // Heartbeat message
-  static unsigned long next_send = 10000;
-  if ( millis() > next_send ) {
-    next_send = millis() + random(1000,6000);
-    byte heartbeat[3] = {COMMAND_HEARTBEAT,0,0};
-    SendMessage(heartbeat);
-  }
+
+  // TODO: disabled as no need for this type of message for BM 2018
+  
+//  static unsigned long next_send = NETWORK_HEARTBEAT_DELAY_AFTER_BOOT;
+//  if ( millis() > next_send ) {
+//    next_send = millis() + random(NETWORK_HEARTBEAT_MIN_INTERVAL,NETWORK_HEARTBEAT_MAX_INTERVAL);
+//    byte heartbeat[3] = {COMMAND_HEARTBEAT,0,0};
+//    SendMessage(heartbeat);
+//  }
 
   _message_received = false; // will be set to true inside HandleMessage if message was received
 
