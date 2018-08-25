@@ -89,7 +89,7 @@ void lights_loop() {
     }
     break;
     case LIGHT_MODE_PURPLE: {
-      allColor(0x8A2BE2);
+      allColor(0xFF3060);
     }
     break;
     case LIGHT_MODE_GREEN: {
@@ -168,6 +168,18 @@ CRGB wheel(int WheelPos, int dim) {
 void Fire(int Cooling, int Sparking) {
   static byte heat[NUM_LEDS];
   int cooldown;
+
+  bool shouldRenderFrame = false;
+  EVERY_N_MILLISECONDS( 20 ) {
+    shouldRenderFrame = true;
+  }
+  if ( !shouldRenderFrame ) {
+//    LOGN("SKipping Frame");
+    return;
+  } 
+//  else {
+//    LOGN("Not skilling");
+//  }
   
   // Step 1.  Cool down every cell a little
   for( int i = 0; i < NUM_LEDS; i++) {
