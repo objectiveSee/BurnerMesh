@@ -153,13 +153,21 @@ void lights_loop() {
 
 void setLightMode(LightMode mode) {
 
-  LOG("Light mode changing from "); LOG((int)_lightMode);
-  LOG(" to "); LOGN((int)mode);
+
+  if ( _lightMode != mode ) {
+    LOG("Light mode changing from "); LOG((int)_lightMode);
+    LOG(" to "); LOGN((int)mode);    
+  }
+
   
 #ifndef DONT_CHANGE_LIGHT_MODE_EVER
+
+  // set the new mode!
   _lightMode = mode;
+
 #endif
 }
+
 LightMode lightMode() {
   return _lightMode;
 };
