@@ -77,7 +77,7 @@ void lights_setup(Network * theirNetwork) {
   // NOTE: since you're using double strips, you need to halve the mA here.
   // EG: setting 500mA will limit the bike pole to 1000mA
   FastLED.addLeds<WS2812SERIAL, PIN, BRG>(leds, NUM_LEDS);
-  set_max_power_in_volts_and_milliamps(5, 500);
+  set_max_power_in_volts_and_milliamps(5, 700);
 
 }
 
