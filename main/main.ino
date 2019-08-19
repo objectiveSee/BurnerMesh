@@ -65,19 +65,12 @@ void setup() {
 
   loadConfig();           // load important values about angles and other app settings that need to persist
 
-  //  LOGN(F("Begin Accelerometer Setup"));
-  //  delay(100);
-  //
-  //  // Initalize the Accelerometer module
-  //  accelerometer = new Accelerometer();
-  //  accelerometer->setup();
-
   // Wireless configure
   network.Setup();
 
   lights_setup(&network);
 
-  delay(2000);
+  delay(100);
 
   LOGN(F("Setup complete"));
 }
@@ -85,6 +78,11 @@ void setup() {
 void loop() {
     
   network.Update();
+
+  if ( network.MessageReceived() ) {
+    byte *msg = network.GetMessage();
+    process_message(msg);
+  }
 
   // check for time to send a mode change
   unsigned long t = millis();
@@ -148,7 +146,7 @@ void process_message(byte * msg) {
 void blinkLEDOnBootup() {
 #define BLINKY_TIME 100
   pinMode(LED_BUILTIN, OUTPUT);
-  for ( int i = 0; i < 10; i++ ) {
+  for ( int i = 0; i < 5; i++ ) {
     digitalWrite(LED_BUILTIN, HIGH);
     delay(BLINKY_TIME);
     digitalWrite(LED_BUILTIN, LOW);

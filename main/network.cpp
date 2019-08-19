@@ -196,7 +196,7 @@ void Network::SendModeChange(byte modeAsByte) {
 void Network::SendMessageFullPayload(byte* payload) {
 
 #if MAD_NETWORK_LOGGING
-  Serial.print("NEW: Sending paylod: ");
+  Serial.print("Sending: ");
   for ( byte i=0; i<PAYLOAD_SIZE; i++) {
     Serial.print(payload[i], HEX); Serial.print(" ");
   }
