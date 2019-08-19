@@ -1,6 +1,6 @@
 #include <functional>
 
-#define MAD_NETWORK_LOGGING 0
+#define MAD_NETWORK_LOGGING 1
 
 #include "build.h"
 #include "network.h"
@@ -10,6 +10,16 @@
 #include <Mirf.h>
 #include <nRF24L01.h>
 #include <MirfHardwareSpiDriver.h>
+
+
+
+byte currentOutgoingMessage[PAYLOAD_SIZE];
+bool outgoingMessage = false;
+int sendCount = 0;
+unsigned long lastSend = 0;
+#define RESEND_COUNT 5
+#define RESEND_INTERVAL 50
+
 
 
 byte stringChecksum(byte *s)
@@ -73,19 +83,28 @@ void Network::Setup()
 #endif
 }
 
+
+
+
+
+bool shouldSend() {
+  if ( outgoingMessage && sendCount < RESEND_COUNT ) {
+//    Serial.print("check resend || "); Serial.println(lastSend);
+    if ( lastSend + RESEND_INTERVAL < millis() ) {
+//      Serial.println("pass");
+      return true;
+      
+    }
+  }
+  return false;
+}
+
 void Network::Update()
 {
-
-  // Heartbeat message
-  static unsigned long next_send = 10000;
-  if ( millis() > next_send ) {
-    next_send = millis() + random(1000,6000);
-    byte heartbeat[3] = {COMMAND_HEARTBEAT,0,0};
-    SendMessage(heartbeat);
-  }
-
+  
   _message_received = false; // will be set to true inside HandleMessage if message was received
 
+  // Skip if message is still sending or data isn't ready (nothing new)
   if( ! Mirf.isSending() && Mirf.dataReady() ) {
   
     delay(10);
@@ -94,6 +113,20 @@ void Network::Update()
   
     HandleMessage(payload);    
   }
+
+  if ( shouldSend() ) {
+    lastSend = millis();
+    Serial.print("Sending message attempt #"); Serial.print(sendCount); Serial.print(" --"); Serial.println(lastSend);
+    sendCount++;
+    SendMessageFullPayload(currentOutgoingMessage);
+    if ( sendCount >= RESEND_COUNT ) {
+      // reset
+      lastSend = 0;
+      sendCount = 0;
+      outgoingMessage = false;
+    }
+  }
+
 }
 
 bool Network::MessageReceived() {
@@ -102,6 +135,14 @@ bool Network::MessageReceived() {
 byte * Network::GetMessage() {
   return _message;
 }
+
+/**
+ * Packet Structure:
+ * Byte #
+ * 0 | Header
+ * 1..3 | Message
+ * 5 | Check Sum
+ */
 
 void Network::HandleMessage(byte* message) {
 
@@ -131,36 +172,31 @@ void Network::HandleMessage(byte* message) {
 
 void Network::SendModeChange(byte modeAsByte) {
   byte modeChange[3] = {COMMAND_MODE_CHANGE, modeAsByte, 0};
-  SendMessage(modeChange);
+
+  // cancel any previous messages outoing and send your own
+  byte newmsg[PAYLOAD_SIZE];
+  newmsg[0] = 0xDA;  // header
+  newmsg[1] = getNodeId();
+  newmsg[2] = COMMAND_MODE_CHANGE; 
+  newmsg[3] = modeAsByte;
+  newmsg[4] = 0x00;
+  newmsg[5] = stringChecksum(newmsg);
+  
+  
+  // copy message into the send buffer. 
+  memcpy(&currentOutgoingMessage, newmsg, PAYLOAD_SIZE);
+
+  outgoingMessage = true;
+  sendCount = 0;
+  lastSend = 0;
+
+  // Next loop will now send the message!
 }
 
-/**
- * Formats and sends a payload via wireless.
- * 
- * @param message - pointer to a MESSAGE_SIZE-1 byte array
- * 
- * The subraction is needed as 1 byte of message is the nodeId.
- */
-void Network::SendMessage(byte* message)
-{
-  
-  Mirf.setTADDR((byte *)"bonjr");
-
-  uint8_t n = getNodeId();
-
-  byte payload[PAYLOAD_SIZE];
-  payload[0] = 0xDA;  // header
-  payload[1] = n;
-  
-  // copy message into the send buffer. Subtract one because one byte of message is the node Id
-  // which gets set by this function.
-  memcpy(&payload[2], message, MESSAGE_SIZE - 1); 
-  
-  byte checksum = stringChecksum(payload);
-  payload[PAYLOAD_SIZE - 1] = checksum;
+void Network::SendMessageFullPayload(byte* payload) {
 
 #if MAD_NETWORK_LOGGING
-  Serial.print("Sending paylod: ");
+  Serial.print("NEW: Sending paylod: ");
   for ( byte i=0; i<PAYLOAD_SIZE; i++) {
     Serial.print(payload[i], HEX); Serial.print(" ");
   }
@@ -175,4 +211,47 @@ void Network::SendMessage(byte* message)
 #endif
   delay(10);
 }
+
+
+/**
+ * Formats and sends a payload via wireless.
+ * 
+ * @param message - pointer to a MESSAGE_SIZE-1 byte array
+ * 
+ * The subraction is needed as 1 byte of message is the nodeId.
+ */
+//void Network::SendMessage(byte* message)
+//{
+//  
+//  Mirf.setTADDR((byte *)"bonjr");
+//
+//  uint8_t n = getNodeId();
+//
+//  byte payload[PAYLOAD_SIZE];
+//  payload[0] = 0xDA;  // header
+//  payload[1] = n;
+//  
+//  // copy message into the send buffer. Subtract one because one byte of message is the node Id
+//  // which gets set by this function.
+//  memcpy(&payload[2], message, MESSAGE_SIZE - 1); 
+//  
+//  byte checksum = stringChecksum(payload);
+//  payload[PAYLOAD_SIZE - 1] = checksum;
+//
+//#if MAD_NETWORK_LOGGING
+//  Serial.print("Sending paylod: ");
+//  for ( byte i=0; i<PAYLOAD_SIZE; i++) {
+//    Serial.print(payload[i], HEX); Serial.print(" ");
+//  }
+//  Serial.println("");
+//#endif
+//  
+//  Mirf.send((byte *)payload);
+//  while(Mirf.isSending()){  // TODO: add timeout?
+//  }
+//#if MAD_NETWORK_LOGGING
+//  Serial.println("Finished sending");
+//#endif
+//  delay(10);
+//}
 

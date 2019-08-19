@@ -30,7 +30,6 @@ Network         network;
 /**
    Static Members
 */
-static bool wireless_input_enabled = true;
 static Button button0(15);
 static Button button1(16);
 
@@ -54,7 +53,7 @@ void buttonWasPressed(byte button_id);
 void setup() {
 
   Serial.begin(9600);     // Begin serial
-  LOGN(F("Adventure Time!!"));
+  LOGN(F("Adventure Time 2019!!"));
 
   // configure the SlaveControllerSerial
   //  if ( serial_input_enabled ) {
@@ -83,25 +82,16 @@ void setup() {
   LOGN(F("Setup complete"));
 }
 
-
-
 void loop() {
-
-  if ( wireless_input_enabled ) {
     
-    network.Update();
+  network.Update();
 
-    if ( network.MessageReceived() ) {
-        byte *msg = network.GetMessage();
-        process_message(msg);        
-    }
-
-    // Send mode change (button presses) only after a delay
-    if ( millis() > last_mode_send_change && last_mode_send_change != 0 ) {
-      network.SendModeChange((byte)lightMode());
-      last_mode_send_change = 0;
-    }
-
+  // check for time to send a mode change
+  unsigned long t = millis();
+  if ( t > last_mode_send_change && last_mode_send_change != 0 ) {
+    Serial.println("Time to send mode change!");
+    network.SendModeChange((byte)lightMode());
+    last_mode_send_change = 0;
   }
 
   button0.loop();
@@ -178,5 +168,3 @@ void buttonWasPressed(byte button_id) {
 
   last_mode_send_change = millis() + kLIGHT_MODE_SEND_DELAY;
 }
-
-
