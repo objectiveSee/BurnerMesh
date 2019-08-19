@@ -18,7 +18,7 @@ bool outgoingMessage = false;
 int sendCount = 0;
 unsigned long lastSend = 0;
 #define RESEND_COUNT 5
-#define RESEND_INTERVAL 100
+#define RESEND_INTERVAL 50
 
 
 
